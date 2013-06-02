@@ -1,0 +1,5 @@
+seq
+out.png
+*.pyc
+0
+.DS_Store
