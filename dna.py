@@ -65,11 +65,11 @@ def project(x, y, z):
 
 mat = [0,0,0, 0,0,0, 0,0,0]
 
-def rotation(phi):
-  x = 0.57735026918962573;
-  y = 0.57735026918962573;
-  z = 0.57735026918962573;
+def norm(x, y, z):
+    d = math.sqrt(x**2 + y**2 + z**2)
+    return (x / d, y / d, z / d)
 
+def rotation(phi, x, y, z):
   s = math.sin(phi);
   c = math.cos(phi);
 
@@ -85,18 +85,55 @@ def rotation(phi):
   mat[7] = y*z*(1-c)+x*s;
   mat[8] = z*z*(1-c)+c;
 
+class Ball:
+    def __init__(self):
+        self.x = random.random() * 400
+        self.y = random.random() * 300
+        th = random.random() * 2 * math.pi
+        r = 3
+        self.dx = r * math.sin(th)
+        self.dy = r * math.cos(th)
+    def move(self):
+        self.x += self.dx
+        if self.x < 0:
+            self.x = -self.x
+            self.dx *= -1
+        if self.x > 400:
+            self.x = 800-self.x
+            self.dx *= -1
+        self.y += self.dy
+        if self.y < 0:
+            self.y = -self.y
+            self.dy *= -1
+        if self.y > 284:
+            self.y = (2 * 284)-self.y
+            self.dy *= -1
+    def fall(self):
+        self.dy += .3
+        v = math.sqrt(self.dx ** 2 + self.dy ** 2)
+        self.dx *= 0.999
+        self.dy *= 0.999
+        self.move()
+
 def dna(GD):
 
-    ramp = Image.open("assets/ramp.png")
-    (dpic, dchr, dpal) = gdprep.encode(ramp)
-    w = ramp.size[0] / 8
-    h = ramp.size[1] / 8
-    for y in range(h):
-        for x in range(0, 50, w):
-            GD.m[64 * y + x:64 * y + x + w] = dpic[w*y:w*y+w]
-    GD.sync_pic()
-    GD.wrstr(gd.RAM_CHR, dchr.tostring())
-    GD.wrstr(gd.RAM_PAL, dpal.tostring())
+    if 0:
+        ramp = Image.open("assets/ramp.png")
+        (dpic, dchr, dpal) = gdprep.encode(ramp)
+        w = ramp.size[0] / 8
+        h = ramp.size[1] / 8
+        for y in range(h):
+            for x in range(0, 50, w):
+                GD.m[64 * y + x:64 * y + x + w] = dpic[w*y:w*y+w]
+        GD.sync_pic()
+        GD.wrstr(gd.RAM_CHR, dchr.tostring())
+        GD.wrstr(gd.RAM_PAL, dpal.tostring())
+    else:
+        GD.getbrush(Image.open("originals/atparty.png"))
+        GD.paint(0,0)
+        GD.sync_pic()
+    cp = GD.charpal()
+    GD.fade(cp, 32, 8)
 
     im = Image.new("RGBA", (64 * 16, 16))
     for i in range(64):
@@ -133,7 +170,7 @@ def dna(GD):
 
     GD.hide()
 
-    if 0:
+    if 1:
         GD.wrstr(gd.PALETTE16A + 15*2, "aa")
         for i in range(64):
             draw_sphere(i, 64 + 17 * (i & 0xf),
@@ -152,27 +189,35 @@ def dna(GD):
             GD.sync_spr()
             GD.wait(20)
 
-    for f in range(480):
-        for i in range(256):
-            x = i % 16
-            y = i / 16
-            wobble = pow(max(0, f - 60) / 420., 1)
-            r = 1.5 * wobble * (8 - math.sqrt((x-8)**2 + (y-8)**2))
-            dx = math.sin(f * .4) * r
-            dy = math.cos(f * .4) * r
-            draw_sphere(i,
-                        64 + 18 * x + dx,
-                         6 + 18 * y + dy,
-                        i & 63,
-                        i >> 6)
+    for i in range(256):
+        x = i % 16
+        y = i / 16
+        draw_sphere(i,
+                    64 + 18 * x,
+                     6 + 18 * y,
+                    i & 63,
+                    i >> 6)
+    GD.sync_spr()
+    GD.wait(60)
+
+    mcloud = [Ball() for i in range(256)]
+    for ii in range(480):
+        for i,b in enumerate(mcloud):
+            draw_sphere(i, b.x, b.y, i & 63, i >> 6)
+        if ii < 320:
+            [b.move() for b in mcloud]
+        else:
+            [b.fall() for b in mcloud]
         GD.sync_spr()
-        GD.wait()
+        GD.wait(1)
 
     GD.hide()
     GD.sync_spr()
 
-    for ii in range(100):
-        rotation(ii * 0.02)
+    phi = 1.0
+    for ii in range(60 * 20):
+        rotation(phi, *norm(math.sin(ii / 77.), 1, 1))
+        phi += 0.027
         prj = [project(*p) for p in cloud]
         prj = sorted(prj, key=lambda p:-p[2])
         for i,p in enumerate(prj):
@@ -184,60 +229,3 @@ def dna(GD):
                 GD.wait()
         GD.sync_spr()
         GD.wait()
-"""
-gdprep.dump(hh, "sphere_img", ir.used())
-gdprep.dump(hh, "sphere_pal", gdprep.getpal(im))
-
-def r():
-    return random.randint(0, 256)
-
-# cloud = [np.array([r(), r(), r()]) for i in range(250)]
-
-print >>hh, "static PROGMEM prog_char cloud[] = {"
-for i,p in enumerate(cloud):
-    x,y,z = p
-    print >>hh, "%d,%d,%d," % tuple(127 * c for c in p)
-print >>hh, "};"
-
-ramp = Image.open("ramp.png").convert("L")
-q32 = [min(0xf8, (c + random.randrange(8)) & ~7) for c in array.array('B', ramp.tostring())]
-ramp = Image.fromstring("L", ramp.size, array.array('B', q32))
-for i in range(0, len(q32), (32 * 8)):
-    print i, set(q32[i : i + 24*8])
-
-fn = "ramp"
-(picdata, chrdata, paldata) = gdprep.encode(ramp.convert("RGB"))
-gdprep.dump(hh, "%s_pic" % fn, array.array('B', [b + 128 for b in picdata]))
-gdprep.dump(hh, "%s_chr" % fn, chrdata)
-gdprep.dump(hh, "%s_pal" % fn, paldata)
-monoh = []
-for h in paldata:
-    r = 31 & (h >> 10)
-    g = 31 & (h >> 5)
-    b = 31 & (h >> 0)
-    if len(set([r,g,b])) != 1:
-        print "%04x" % h, r, g, b
-    monoh.append((r << 10) | (r << 5) | r)
-
-
-if 0:
-    def r():
-        return -1 + 2 * random.random()
-
-    cloud = [np.array([r(), r(), r()]) for i in range(250)]
-
-    gd = gameduino.remote.Gameduino("/dev/ttyUSB0", 115200)
-    gd.wrstr(gameduino.PALETTE16A, gdprep.getpal(im))
-    gd.wr16(gameduino.RAM_PAL, gameduino.RGB(10, 30, 70))
-    gd.wrstr(gameduino.RAM_SPRIMG, ir.used())
-
-    print cloud
-    i = 0
-    scloud = [p for (_,p) in sorted([(-z,(x,y,z)) for (x,y,z) in cloud])]
-    for i,p in enumerate(scloud):
-        x,y,z = p
-        z = int(32 + 31 * z)
-        sprimg = z / 2
-        sprpal = [4,6][z%2]
-        gd.sprite(i, int(200 + 200 * x), int(150 + 200 * y), sprimg, sprpal, 0)
-"""

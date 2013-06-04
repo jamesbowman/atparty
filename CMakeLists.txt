@@ -7,6 +7,8 @@ ADD_EXECUTABLE(gdatparty
 	${HDRS}
 	)
 
+set_property( TARGET gdatparty PROPERTY COMPILE_DEFINITIONS EMULATED )
+
 target_link_libraries(gdatparty
 	libgdemu
 	)

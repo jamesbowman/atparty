@@ -5,7 +5,7 @@ import gameduino as gd
 class Combiner:
     def __init__(self, GD):
         self.GD = GD
-        self.m = array.array('B', chr(0) * 32768)
+        self.m = GD.m
         self.areas = [None for i in range(32768)]
         for (a, n) in [
             (gd.IDENT, 32), # registers
@@ -26,7 +26,7 @@ class Combiner:
         self.merging = False
     def flush(self):
         if self.writing:
-            print 'write %04x - %04x' % (self.lo, self.hi)
+            # print 'write %04x - %04x' % (self.lo, self.hi)
             self.GD.wrstr(self.lo, self.m[self.lo:self.hi + 1])
             self.writing = False
     def wr(self, a, v):
@@ -48,7 +48,7 @@ class Combiner:
             self.hi = max(self.hi, a)
         self.m[a] = v
 
-def playback(tracefile):
+def playback(GD, tracefile):
     cc = Combiner(GD)
     for l in tracefile:
         if l.startswith("__"):
@@ -62,7 +62,7 @@ def playback(tracefile):
                 pass
             elif fl[0] == 'WAIT':
                 cc.flush()
-                print 'WAIT'
+                # print 'WAIT'
                 GD.wait()
             else:
                 assert 0, "Unknown command %r" % fl

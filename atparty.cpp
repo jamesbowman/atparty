@@ -55,6 +55,14 @@ static void loadto(uint16_t addr, uint16_t count)
   GD.__end();
 }
 
+// readsector: read sector, returns 0 if at EOF
+#ifdef EMULATED
+static byte readsector(byte *sec)
+{
+  return fread(sec, 512, 1, ff) != 0;
+}
+#endif
+
 void setup()
 {
   GD.begin();
@@ -62,7 +70,7 @@ void setup()
 
   ff = fopen("seq", "r");
   byte sec[512];
-  while (fread(sec, 512, 1, ff) != 0) {
+  while (readsector(sec)) {
     uint16_t count = sec[0] + (sec[1] << 8);
     uint16_t addr = sec[2] + (sec[3] << 8);
     if (count < 0x200) {
@@ -76,9 +84,16 @@ void setup()
       case '.':
         GD.waitvblank();
         break;
+      case ',':
+        delay(1);
+        while (controller_sense(0) == CONTROL_RIGHT)
+          ;
+        while (controller_sense(0) != CONTROL_RIGHT)
+          if (controller_sense(0) == CONTROL_DOWN)
+            exit(0);
       }
     }
-    if (controller_sense(0))
+    if (controller_sense(0) == CONTROL_DOWN)
       exit(0);
   }
 
