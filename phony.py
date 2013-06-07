@@ -30,6 +30,9 @@ class Gameduino:
     def sprite(self, spr, x, y, image, palette = 0, rot = 0, jk = 0):
         x = int(x)
         y = int(y)
+        if x <= -16 or 400 <= x or y <= -16 or 300 <= y:
+            x = 400
+            y = 400
         assert spr < 512
         p = gd.RAM_SPR + spr * 4
         self.m[p + 0] = x & 0xff

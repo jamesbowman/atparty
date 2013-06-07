@@ -27,7 +27,6 @@ def scroll(GD):
         GD.wrstr(gd.RAM_CHR + 16 * i, dchr[16 * i:16 * i + 16])
         GD.wrstr(gd.RAM_PAL + 8 * i, dpal[4 * i:4 * i + 4])
         GD.wait()
-    return
 
     GD.getbrush(tile)
     for x in range(0, 64, 16):
