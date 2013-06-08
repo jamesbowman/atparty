@@ -83,19 +83,77 @@ static byte readsector(byte *sec)
 
 #endif
 
+int atxy(int x, int y)
+{
+  return (y << 6) + x;
+}
+
+void show_stripes()
+{
+  int y = 5;
+  int i;
+
+  for (i = 0; i < 32; i++) {
+    GD.wr16(RAM_PAL + (0x80 + i) * 8, RGB(8 * i, 0, 0));
+    GD.wr16(RAM_PAL + (0xa0 + i) * 8, RGB(0, 8 * i, 0));
+    GD.wr16(RAM_PAL + (0xc0 + i) * 8, RGB(0, 0, 8 * i));
+    GD.wr(atxy(i + 9, y + 24), 0x80 + i);
+    GD.wr(atxy(i + 9, y + 25), 0xa0 + i);
+    GD.wr(atxy(i + 9, y + 26), 0xc0 + i);
+  }
+}
+
+static void banner()
+{
+  digitalWrite(3, HIGH);
+  GD.ascii();
+  show_stripes();
+  GD.putstr(15, 12, "READY.  PRESS START");
+  byte ch = '@';
+  do {
+    for (byte i = 8; i; i--)
+      GD.waitvblank();
+    GD.fill(atxy(0, 0), ch, 50);
+    GD.fill(atxy(0, 36), ch, 50);
+    for (byte i = 1; i < 36; i++) {
+      GD.wr(atxy(0, i), ch);
+      GD.wr(atxy(49, i), ch);
+    }
+    if (++ch > 'Z')
+      ch = '@';
+  } while (digitalRead(3) == 1);
+}
+
 void setup()
 {
+  // Serial.begin(115200);
   GD.begin();
   controller_init();
+  banner();
   sdcard_begin();
 
   byte sec[512];
   while (readsector(sec)) {
     uint16_t count = sec[0] + (sec[1] << 8);
     uint16_t addr = sec[2] + (sec[3] << 8);
+    if (count & 0x8000) {
+      GD.waitvblank();
+      count &= 0x7fff;
+    }
     if (count < 0x200) {
       byte *pc = sec + 4;
       GD.__wstart(addr);
+      while (count > 8) {
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        SPI.transfer(*pc++);
+        count -= 8;
+      }
       while (count--)
         SPI.transfer(*pc++);
       GD.__end();

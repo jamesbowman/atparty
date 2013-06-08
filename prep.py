@@ -22,6 +22,7 @@ class Sequencer:
     def __init__(self):
         self.f = open("seq", "w")
         self.fake = 0
+        self.waitpending = 0
 
     def sector(self, s):
         self.f.write(s.ljust(512))
@@ -31,7 +32,9 @@ class Sequencer:
             s = s.tostring()
         for i in range(0, len(s), 508):
             sub = s[i:i+508]
-            self.sector(struct.pack("HH", len(sub), addr + i) + sub)
+            print "%04x" % (len(sub) + (self.waitpending << 15)), hex(addr + i)
+            self.sector(struct.pack("HH", len(sub) + (self.waitpending << 15), addr + i) + sub)
+            self.waitpending = 0
             self.fake += 1
             if self.fake == 8:
                 self.fake = 0
@@ -41,9 +44,12 @@ class Sequencer:
         self.wrstr(addr, chr(0) * n)
 
     def wait(self, n = 1):
-        for i in range(n):
-            self.sector("." + chr(2))
-        self.fake = 0
+        if n == 1:
+            self.waitpending = 1
+        else:
+            for i in range(n):
+                self.sector("." + chr(2))
+            self.fake = 0
 
     def pause(self):
         if 0:
@@ -64,7 +70,7 @@ from blocks import blocks
 from mario import mario
 
 def do(nm):
-    if 1 or nm in ('demos'):
+    if 0 or nm in ('scroll'):
         print 'doing', nm
         return True
     else:
