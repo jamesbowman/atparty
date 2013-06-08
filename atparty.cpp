@@ -38,37 +38,57 @@ static byte controller_sense(uint16_t clock)
   return r;
 }
 
-static FILE *ff;
-#define NEXT1() getc(ff)
-uint16_t NEXT2()
-{
-  byte lo = NEXT1();
-  byte hi = NEXT1();
-  return lo + (hi << 8);
-}
-
-static void loadto(uint16_t addr, uint16_t count)
-{
-  GD.__wstart(addr);
-  for (int i = 0; i < count; i++)
-    SPI.transfer(getc(ff));
-  GD.__end();
-}
-
+// sdcard_begin: init sdcard
 // readsector: read sector, returns 0 if at EOF
+
 #ifdef EMULATED
+static FILE *ff;
+
+static void sdcard_begin()
+{
+  ff = fopen("seq", "r");
+}
+
 static byte readsector(byte *sec)
 {
   return fread(sec, 512, 1, ff) != 0;
 }
+#else
+
+#define SDCARD_CS 8       // Which pin is sdcard enable connected to?
+#include "sdcard.h"
+
+static Reader rr;
+
+static void sdcard_begin()
+{
+  pinMode(SDCARD_CS, OUTPUT);
+  digitalWrite(SDCARD_CS, HIGH);
+  delay(100);
+  SD.begin(SDCARD_CS);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPSR = (1 << SPI2X);
+  rr.openfile("MAIN.SEQ");
+}
+
+static byte readsector(byte *sec)
+{
+  byte ok = (rr.offset < rr.size);
+  if (ok)
+    rr.readsector(sec);
+  return ok;
+}
+
 #endif
 
 void setup()
 {
   GD.begin();
   controller_init();
+  sdcard_begin();
 
-  ff = fopen("seq", "r");
   byte sec[512];
   while (readsector(sec)) {
     uint16_t count = sec[0] + (sec[1] << 8);
