@@ -63,7 +63,7 @@ from dna import dna
 from blocks import blocks
 
 def do(nm):
-    if 0 or nm in ('blocks'):
+    if 1 or nm in ('blocks'):
         print 'doing', nm
         return True
     else:

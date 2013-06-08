@@ -88,6 +88,7 @@ class Gameduino:
     def getbrush(self, im):
         (dpic, dchr, dpal) = gdprep.encode(im)
         self.wrstr(gd.RAM_CHR, dchr.tostring())
+        print 'used', len(dchr) / 16
         self.wrstr(gd.RAM_PAL, dpal.tostring())
         self.dpic = dpic
         self.w = im.size[0] / 8
@@ -110,7 +111,7 @@ class Gameduino:
         def fc(v):
             return max(0, min(255, int(v * t)))
         rgb = [(fc(r), fc(g), fc(b)) for (r,g,b) in rgb]
-        newpal = array.array('H', [gd.RGB(*c) for c in rgb]).tostring()
+        newpal = array.array('H', [gd.RGB(*c)|(h & 0x8000) for c,h in zip(rgb, ch)]).tostring()
         self.wrstr(gd.RAM_PAL, newpal[0:2048])
         self.wrstr(gd.PALETTE16A, newpal[2048:2048+32])
 
@@ -132,3 +133,11 @@ class Gameduino:
         newpal = array.array('H', [gd.RGB(*c) for c in rgb]).tostring()
         self.wrstr(gd.RAM_PAL, newpal[0:2048])
         self.wrstr(gd.PALETTE16A, newpal[2048:2048+32])
+
+    def scrollxy(self, x, y):
+        self.wrstr(gd.SCROLL_X, struct.pack("HH", int(x) & 511, int(y) & 511))
+
+    def microcode(self, s):
+        self.wr(gd.J1_RESET, 1);
+        self.wrstr(gd.J1_CODE, s);
+        self.wr(gd.J1_RESET, 0);
