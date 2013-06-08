@@ -32,7 +32,7 @@ class Sequencer:
             s = s.tostring()
         for i in range(0, len(s), 508):
             sub = s[i:i+508]
-            print "%04x" % (len(sub) + (self.waitpending << 15)), hex(addr + i)
+            # print "%04x" % (len(sub) + (self.waitpending << 15)), hex(addr + i)
             self.sector(struct.pack("HH", len(sub) + (self.waitpending << 15), addr + i) + sub)
             self.waitpending = 0
             self.fake += 1
@@ -57,6 +57,11 @@ class Sequencer:
         else:
             self.wait(60)
 
+if 1:
+    cs = Image.open("assets/sonic.png")
+    (dpic, dchr, dpal) = gdprep.encode(cs)
+    print 'sonic used', len(dchr) / 16
+    sys.exit(0)
 from phony import Gameduino
 
 s = Sequencer()

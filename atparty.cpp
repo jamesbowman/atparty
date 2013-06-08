@@ -103,14 +103,27 @@ void show_stripes()
   }
 }
 
+static byte button()
+{
+  return !digitalRead(3);
+}
+
 static void banner()
 {
   digitalWrite(3, HIGH);
+  delay(50);
+  byte mode = button() ? MODE_800x600_72  : MODE_800x600_60;
+
+  GD.wr(VIDEO_MODE, mode);
   GD.ascii();
   show_stripes();
   GD.putstr(15, 12, "READY.  PRESS START");
+  GD.putstr(23, 17, (mode == MODE_800x600_72) ? "72 HZ" : "60 HZ");
   byte ch = '@';
-  do {
+  byte b, pb;
+  b = pb = button();
+
+  while (!(pb==0 && b==1)) {
     for (byte i = 8; i; i--)
       GD.waitvblank();
     GD.fill(atxy(0, 0), ch, 50);
@@ -121,7 +134,9 @@ static void banner()
     }
     if (++ch > 'Z')
       ch = '@';
-  } while (digitalRead(3) == 1);
+    pb = b;
+    b = button();
+  }
 }
 
 void setup()
@@ -130,51 +145,51 @@ void setup()
   GD.begin();
   controller_init();
   banner();
-  sdcard_begin();
-
-  byte sec[512];
-  while (readsector(sec)) {
-    uint16_t count = sec[0] + (sec[1] << 8);
-    uint16_t addr = sec[2] + (sec[3] << 8);
-    if (count & 0x8000) {
-      GD.waitvblank();
-      count &= 0x7fff;
-    }
-    if (count < 0x200) {
-      byte *pc = sec + 4;
-      GD.__wstart(addr);
-      while (count > 8) {
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        SPI.transfer(*pc++);
-        count -= 8;
-      }
-      while (count--)
-        SPI.transfer(*pc++);
-      GD.__end();
-    } else {
-      switch (count & 0xff) {
-      case '.':
+  for (;;) {
+    sdcard_begin();
+    byte sec[512];
+    while (readsector(sec)) {
+      uint16_t count = sec[0] + (sec[1] << 8);
+      uint16_t addr = sec[2] + (sec[3] << 8);
+      if (count & 0x8000) {
         GD.waitvblank();
-        break;
-      case ',':
-        delay(1);
-        while (controller_sense(0) == CONTROL_RIGHT)
-          ;
-        while (controller_sense(0) != CONTROL_RIGHT)
-          if (controller_sense(0) == CONTROL_DOWN)
-            exit(0);
+        count &= 0x7fff;
       }
+      if (count < 0x200) {
+        byte *pc = sec + 4;
+        GD.__wstart(addr);
+        while (count > 8) {
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          SPI.transfer(*pc++);
+          count -= 8;
+        }
+        while (count--)
+          SPI.transfer(*pc++);
+        GD.__end();
+      } else {
+        switch (count & 0xff) {
+        case '.':
+          GD.waitvblank();
+          break;
+        case ',':
+          delay(1);
+          while (controller_sense(0) == CONTROL_RIGHT)
+            ;
+          while (controller_sense(0) != CONTROL_RIGHT)
+            if (controller_sense(0) == CONTROL_DOWN)
+              exit(0);
+        }
+      }
+      if (controller_sense(0) == CONTROL_DOWN)
+        exit(0);
     }
-    if (controller_sense(0) == CONTROL_DOWN)
-      exit(0);
   }
-
 }
 
 void loop()

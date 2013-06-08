@@ -23,9 +23,11 @@ def mario(GD):
     (dpic, dchr, dpal) = gdprep.encode(cs)
     GD.wrstr(gd.RAM_CHR, dchr)
     GD.wrstr(gd.RAM_PAL, dpal)
+    print 'mario used', len(dchr) / 16
 
     if 1:
-        for i in range(88):
+        nchr = len(dchr) / 16
+        for i in range(nchr):
             x = 10 + (i % 10) * 3
             y = 2 + (i / 10) * 3
             GD.wr(64 * y + x, i)
