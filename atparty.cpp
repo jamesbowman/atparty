@@ -39,13 +39,6 @@ static byte controller_sense(uint16_t clock)
 }
 
 static FILE *ff;
-#define NEXT1() getc(ff)
-uint16_t NEXT2()
-{
-  byte lo = NEXT1();
-  byte hi = NEXT1();
-  return lo + (hi << 8);
-}
 
 static void loadto(uint16_t addr, uint16_t count)
 {
@@ -73,6 +66,10 @@ void setup()
   while (readsector(sec)) {
     uint16_t count = sec[0] + (sec[1] << 8);
     uint16_t addr = sec[2] + (sec[3] << 8);
+    if (count & 0x8000) {
+      GD.waitvblank();
+      count &= 0x7fff;
+    }
     if (count < 0x200) {
       byte *pc = sec + 4;
       GD.__wstart(addr);
