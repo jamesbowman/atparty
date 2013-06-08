@@ -129,7 +129,9 @@ void setup()
   // Serial.begin(115200);
   GD.begin();
   controller_init();
+#if !defined(EMULATED)
   banner();
+#endif
   sdcard_begin();
 
   byte sec[512];

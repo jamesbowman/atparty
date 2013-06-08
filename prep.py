@@ -32,7 +32,7 @@ class Sequencer:
             s = s.tostring()
         for i in range(0, len(s), 508):
             sub = s[i:i+508]
-            print "%04x" % (len(sub) + (self.waitpending << 15)), hex(addr + i)
+            # print "%04x" % (len(sub) + (self.waitpending << 15)), hex(addr + i)
             self.sector(struct.pack("HH", len(sub) + (self.waitpending << 15), addr + i) + sub)
             self.waitpending = 0
             self.fake += 1
@@ -70,7 +70,7 @@ from blocks import blocks
 from mario import mario
 
 def do(nm):
-    if 0 or nm in ('scroll'):
+    if 0 or nm in ('statics', ):
         print 'doing', nm
         return True
     else:

@@ -46,16 +46,26 @@ def mario(GD):
         GD.sync_pic()
         # GD.wait(1)
     pix = -1
-    for i in range(1000):
-        t = i / 1000.
-        scr = int(smoothstep(t) * 8 * (w - 50))
+    scr = 0
+    slew = [1] * 72 + [2] * 72
+    span = (w - 50) * 8
+    part3 = span - 2 * sum(slew)
+    vels = slew + ([3] * (part3 / 3)) + slew[::-1]
+    r = 0
+    for v in vels:
+        scr += v
+        GD.wait(1)
         GD.scrollxy(scr, 0)
         ix = (scr / 8)
         if (pix != ix) and (ix + 60) < w:
             strip(ix + 60)
-            GD.sync_pic()
+            # GD.sync_pic(h)
             pix = ix
-        GD.wait(1)
+        # Sync half of active pic on alternate frames
+        bs = 64 * h / 2
+        a = r * bs
+        GD.wrstr(a, GD.m[a:a+bs])
+        r ^= 1
     GD.pause()
 
     # GD.fill(gd.RAM_CHR + 32 * 16, 0x55, 16) # space
