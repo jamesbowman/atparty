@@ -77,8 +77,7 @@ def tiling(GD):
         y = 3 * i
         x = 50 * math.sin(i * 0.01)
 
+        GD.wait()
+        GD.scrollxy(x, y)
         if i > 200:
             GD.hue(cp, 0.002 * (i-200))
-
-        GD.wrstr(gd.SCROLL_X, struct.pack("HH", int(x) & 511, int(y) & 511))
-        GD.wait()

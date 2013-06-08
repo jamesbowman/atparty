@@ -74,8 +74,8 @@ class Gameduino:
     def sync_spr(self):
         self.t.wrstr(gd.RAM_SPR, self.get_spr())
 
-    def sync_pic(self):
-        self.t.wrstr(gd.RAM_PIC, self.m[gd.RAM_PIC:gd.RAM_PIC+4096])
+    def sync_pic(self, height = 64):
+        self.t.wrstr(gd.RAM_PIC, self.m[gd.RAM_PIC:gd.RAM_PIC+64 * height])
 
     def fill(self, a, v, count):
         self.wrstr(a, chr(v) * count)
@@ -131,8 +131,9 @@ class Gameduino:
 
         rgb = [f(r,g,b) for (r,g,b) in rgb]
         newpal = array.array('H', [gd.RGB(*c) for c in rgb]).tostring()
-        self.wrstr(gd.RAM_PAL, newpal[0:2048])
-        self.wrstr(gd.PALETTE16A, newpal[2048:2048+32])
+        self.wrstr(gd.RAM_PAL, newpal[0:512])
+        # self.wrstr(gd.RAM_PAL, newpal[0:2048])
+        # self.wrstr(gd.PALETTE16A, newpal[2048:2048+32])
 
     def scrollxy(self, x, y):
         self.wrstr(gd.SCROLL_X, struct.pack("HH", int(x) & 511, int(y) & 511))
