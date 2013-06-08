@@ -61,9 +61,10 @@ from scroll import scroll
 from tiling import tiling
 from dna import dna
 from blocks import blocks
+from mario import mario
 
 def do(nm):
-    if 1 or nm in ('blocks'):
+    if 1 or nm in ('demos'):
         print 'doing', nm
         return True
     else:
@@ -160,13 +161,17 @@ if do('statics'):
     static("wargames", "layers, sprites, palettes", "32K ROM, 2K RAM", "beam chasing")
     static("backto", "C++", "big storage", "desktop tools")
 
-if do('tiling'):
+if do('mario'):
     GD.cold()
-    tiling(GD)
+    mario(GD)
 
 if do('scroll'):
     GD.cold()
     scroll(GD)
+
+if do('tiling'):
+    GD.cold()
+    tiling(GD)
 
 if do('dna'):
     GD.cold()
@@ -177,7 +182,7 @@ if do('blocks'):
     blocks(GD)
 
 if do('demos'):
-    for d in ['ball']: # ['ball','chessboard','asteroids']:
+    for d in ['ball','chessboard','asteroids', 'manicminer']:
         GD.cold()
         playback(GD, open("traces/" + d))
 

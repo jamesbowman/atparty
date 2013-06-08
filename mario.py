@@ -61,4 +61,3 @@ def mario(GD):
     # GD.fill(gd.RAM_CHR + 32 * 16, 0x55, 16) # space
     GD.fill(gd.RAM_CHR + 128 * 16, 0x00, 16) # all-white
     GD.fill(gd.RAM_PIC, 128, 38 * 64)
-
