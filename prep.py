@@ -52,10 +52,7 @@ class Sequencer:
             self.fake = 0
 
     def pause(self):
-        if 0:
-            self.sector("," + chr(2))
-        else:
-            self.wait(60)
+        self.sector("," + chr(2))
 
 if 0:
     cs = Image.open("assets/sonic.png")
@@ -77,7 +74,7 @@ from blocks import blocks
 from mario import mario
 
 def do(nm):
-    if 0 or nm in ('statics', ):
+    if 1 or nm in ('tiling', ):
         print 'doing', nm
         return True
     else:
@@ -89,12 +86,14 @@ if do('statics'):
     slide(GD, "eagle")
     slide(GD, "pitch")
     slide(GD, "Kickstarter0")
+    slide(GD, "DSC_2222-500")
+    slide(GD, "blog-gameduino1")
     slide(GD, "odyssey")
     slide(GD, "ball")
     slide(GD, "frogger")
     slide(GD, "zardoz")
     slide(GD, "wargames", "layers, sprites, palettes", "32K ROM, 2K RAM", "beam chasing")
-    slide(GD, "backto", "C++", "big storage", "desktop tools")
+    slide(GD, "backto", "Wiring / C++", "big storage", "desktop tools")
 
 if do('mario'):
     GD.cold()
@@ -120,6 +119,7 @@ if do('demos'):
     for d in ['ball','chessboard','asteroids', 'manicminer']:
         GD.cold()
         playback(GD, open("traces/" + d))
+        GD.pause()
 
 GD.cold()
 GD.getbrush(Image.open("originals/atparty.png"))

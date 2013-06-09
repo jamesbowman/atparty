@@ -6,3 +6,4 @@ cp atparty.cpp $SKETCH/atparty.ino
 
 make -C ../build/atparty &&
 ../build/atparty/gdatparty
+# gdb -x x.gdb ../build/atparty/gdatparty

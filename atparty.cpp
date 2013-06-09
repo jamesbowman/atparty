@@ -188,9 +188,9 @@ void setup()
         case ',':
           delay(1);
 #ifdef EMULATED
-          while (controller_sense(0) == CONTROL_RIGHT)
-            ;
-          while (controller_sense(0) != CONTROL_RIGHT)
+//         while (controller_sense(0) == CONTROL_RIGHT)
+//           ;
+//         while (controller_sense(0) != CONTROL_RIGHT)
             if (controller_sense(0) == CONTROL_DOWN)
               exit(0);
 #else
