@@ -108,11 +108,19 @@ static byte button()
   return !digitalRead(3);
 }
 
+static void wait_button()
+{
+  while (button())
+    delay(10);
+  while (!button())
+    delay(10);
+}
+
 static void banner()
 {
   digitalWrite(3, HIGH);
   delay(50);
-  byte mode = button() ? MODE_800x600_72  : MODE_800x600_60;
+  byte mode = button() ? MODE_800x600_60  : MODE_800x600_72;
 
   GD.wr(VIDEO_MODE, mode);
   GD.ascii();
@@ -144,10 +152,7 @@ void setup()
   // Serial.begin(115200);
   GD.begin();
   controller_init();
-#if !defined(EMULATED)
   banner();
-#endif
-
   for (;;) {
     sdcard_begin();
     byte sec[512];
@@ -182,11 +187,15 @@ void setup()
           break;
         case ',':
           delay(1);
+#ifdef EMULATED
           while (controller_sense(0) == CONTROL_RIGHT)
             ;
           while (controller_sense(0) != CONTROL_RIGHT)
             if (controller_sense(0) == CONTROL_DOWN)
               exit(0);
+#else
+          wait_button();
+#endif
         }
       }
       if (controller_sense(0) == CONTROL_DOWN)
