@@ -70,8 +70,10 @@ def tiling(GD):
         xlat[0x40 + i] = 64 + i
     def str(x, y, s):
         GD.wrstr((7+y) * 64 + (5+x), array.array('B', [xlat[ord(c)] for c in s]))
-    for y in range(25):
-        str(0, y, " " * 40)
+    def cls():
+        for y in range(25):
+            str(0, y, " " * 40)
+    cls()
 
     pal = [gd.RGB(156,156,255),gd.RGB(66,66,222),0,0]
     GD.wrstr(gd.RAM_PAL, array.array('H', 256 * pal))
@@ -82,9 +84,20 @@ def tiling(GD):
     str(0, 5, "READY.")
     str(0, 6, "10 PRINT CHR$(205.5+RND(1)); : GOTO 10");
     GD.pause()
-    s = array.array('B', [random.choice((dpic[95], dpic[105])) for i in range(4096)])
-    GD.wrstr(0, s)
+
+    cls()
+    GD.wr(20 + 64 * 19, dpic[95])
+    GD.wr(30 + 64 * 19, dpic[105])
     GD.pause()
+
+    choice = [random.randrange(2) for i in range(4096)]
+    s0 = array.array('B', [xlat[[48,49][x]] for x in choice])
+    s1 = array.array('B', [dpic[[95,105][x]] for x in choice])
+    GD.wrstr(0, s0)
+    GD.pause()
+    GD.wrstr(0, s1)
+    GD.pause()
+
     cp = GD.charpal()
     GD.fade(cp, 32, 0)
 
