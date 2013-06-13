@@ -177,9 +177,9 @@ def dna(GD):
                            116 + 17 * (i / 16), i, 0)
             GD.sync_spr()
             GD.wait()
-        GD.wait(60)
+        GD.pause()
         GD.wrstr(gd.PALETTE16A, sprpal)
-        GD.wait(60)
+        GD.pause()
 
         for ii in range(10):
             cols = [random.randrange(4) for i in range(64)]
@@ -188,6 +188,7 @@ def dna(GD):
                                116 + 17 * (i / 16), i, cols[i])
             GD.sync_spr()
             GD.wait(20)
+        GD.pause()
 
     for i in range(256):
         x = i % 16
@@ -198,7 +199,7 @@ def dna(GD):
                     i & 63,
                     i >> 6)
     GD.sync_spr()
-    GD.wait(60)
+    GD.pause()
 
     mcloud = [Ball() for i in range(256)]
     for ii in range(480):
@@ -213,6 +214,7 @@ def dna(GD):
 
     GD.hide()
     GD.sync_spr()
+    GD.pause()
 
     phi = 1.0
     for ii in range(60 * 20):
@@ -229,3 +231,4 @@ def dna(GD):
                 GD.wait()
         GD.sync_spr()
         GD.wait()
+    GD.pause()

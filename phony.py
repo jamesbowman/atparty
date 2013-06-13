@@ -57,8 +57,7 @@ class Gameduino:
         self.hide()
         self.sync_spr()
 
-        self.wr16(gd.SCROLL_X, 0);
-        self.wr16(gd.SCROLL_Y, 0);
+        self.scrollxy(0,0)
         self.wr(gd.JK_MODE, 0);
         self.wr(gd.SPR_DISABLE, 0);
         self.wr(gd.SPR_PAGE, 0);

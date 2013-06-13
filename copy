@@ -1,0 +1,2 @@
+cp seq /Volumes/Untitled/MAIN.SEQ &&
+diskutil unmount /Volumes/Untitled/

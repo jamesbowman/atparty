@@ -8,9 +8,53 @@ import random
 import gameduino as gd
 import gameduino.prep as gdprep
 
+from slide import slide
+stretch = [
+  0x00, 0x03, 0x0c, 0x0f,
+  0x30, 0x33, 0x3c, 0x3f,
+  0xc0, 0xc3, 0xcc, 0xcf,
+  0xf0, 0xf3, 0xfc, 0xff
+]
+
+def setchar(GD, n, bb):
+    hh = []
+    for b in bb:
+        hh.append(stretch[b >> 4])
+        hh.append(stretch[b & 15])
+    GD.wrstr(gd.RAM_CHR + 16 * n, array.array('B', hh))
+
 def tiling(GD):
-    # GD.getbrush(Image.open("20592.png"))
-    # assert 0
+    slide(GD, "truchet")
+    GD.cold()
+
+    GD.wr16(gd.RAM_PAL + 255*8, gd.RGB(64,64,64))
+    GD.fill(gd.RAM_PIC, 255, 4096)
+
+    GD.getbrush(Image.open("assets/truchet.png"))
+
+    for i in range(4):
+        GD.wr(64 * 17 + 10 + 10*i, i)
+    GD.pause()
+
+    def tr0(x, y):
+        return 0
+    def tr1(x, y):
+        o = (x < 25)
+        return (2 * o) + (1 & (x + y))
+    def tr2(x, y):
+        return [0,2,3,1][(x & 1) | (2*(y & 1))]
+    def tr2a(x, y):
+        return [1,2,3,0][(x & 1) | (2*(y & 1))]
+    def tr3(x, y):
+        return [2,3,1,0][(x & 1) | (2*(y & 1))]
+    def tr4(x, y):
+        return random.randrange(4)
+    for f in (tr0, tr1, tr2a, tr2, tr3, tr4):
+        b = array.array('B', [f(x, y) for y in range(64) for x in range(64)])
+        GD.wrstr(gd.RAM_PIC, b)
+        GD.pause()
+
+    GD.wrstr(gd.RAM_CHR, array.array('H', 256 * ([0xffff] + 7 * [0x300])))
 
     cs = Image.open("assets/c64_low.gif").crop((0,0,256,32))
     (dpic, dchr, dpal) = gdprep.encode(cs)
@@ -26,8 +70,10 @@ def tiling(GD):
         xlat[0x40 + i] = 64 + i
     def str(x, y, s):
         GD.wrstr((7+y) * 64 + (5+x), array.array('B', [xlat[ord(c)] for c in s]))
-    for y in range(25):
-        str(0, y, " " * 40)
+    def cls():
+        for y in range(25):
+            str(0, y, " " * 40)
+    cls()
 
     pal = [gd.RGB(156,156,255),gd.RGB(66,66,222),0,0]
     GD.wrstr(gd.RAM_PAL, array.array('H', 256 * pal))
@@ -38,9 +84,20 @@ def tiling(GD):
     str(0, 5, "READY.")
     str(0, 6, "10 PRINT CHR$(205.5+RND(1)); : GOTO 10");
     GD.pause()
-    s = array.array('B', [random.choice((dpic[95], dpic[105])) for i in range(4096)])
-    GD.wrstr(0, s)
+
+    cls()
+    GD.wr(20 + 64 * 19, dpic[95])
+    GD.wr(30 + 64 * 19, dpic[105])
     GD.pause()
+
+    choice = [random.randrange(2) for i in range(4096)]
+    s0 = array.array('B', [xlat[[48,49][x]] for x in choice])
+    s1 = array.array('B', [dpic[[95,105][x]] for x in choice])
+    GD.wrstr(0, s0)
+    GD.pause()
+    GD.wrstr(0, s1)
+    GD.pause()
+
     cp = GD.charpal()
     GD.fade(cp, 32, 0)
 
