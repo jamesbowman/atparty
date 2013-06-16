@@ -54,6 +54,12 @@ def tiling(GD):
         GD.wrstr(gd.RAM_PIC, b)
         GD.pause()
 
+    GD.cold()
+    GD.getbrush(Image.open("assets/diamond03b.gif"))
+    GD.paint(5,2)
+    GD.sync_pic()
+    GD.pause()
+
     GD.wrstr(gd.RAM_CHR, array.array('H', 256 * ([0xffff] + 7 * [0x300])))
 
     cs = Image.open("assets/c64_low.gif").crop((0,0,256,32))
@@ -91,12 +97,13 @@ def tiling(GD):
     GD.pause()
 
     choice = [random.randrange(2) for i in range(4096)]
-    s0 = array.array('B', [xlat[[48,49][x]] for x in choice])
-    s1 = array.array('B', [dpic[[95,105][x]] for x in choice])
-    GD.wrstr(0, s0)
-    GD.pause()
-    GD.wrstr(0, s1)
-    GD.pause()
+    t01 = [xlat[48],xlat[49]]
+    tab = [dpic[95],dpic[105]]
+    ta1 = [tab[0], t01[1]]
+    for t in (t01, ta1, tab):
+        print t
+        GD.wrstr(0, array.array('B', [t[x] for x in choice]))
+        GD.pause()
 
     cp = GD.charpal()
     GD.fade(cp, 32, 0)

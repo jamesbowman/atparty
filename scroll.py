@@ -38,9 +38,10 @@ def scroll(GD):
                     GD.wait(60)
                 else:
                     GD.wait(8)
-    print 
     coords = [(i, 0) for i in range(256)]
+    coords.append((None,None))
     coords += [(0, i) for i in range(256)]
+    coords.append((None,None))
 
     phi = 0
     for f in range(480*2):
@@ -51,8 +52,11 @@ def scroll(GD):
         coords.append((r * math.sin(phi), r * math.cos(phi)))
 
     for (x, y) in coords:
-        GD.wrstr(gd.SCROLL_X, struct.pack("HH", int(x) & 511, int(y) & 511))
-        GD.wait()
+        if x is None:
+            GD.pause()
+        else:
+            GD.wrstr(gd.SCROLL_X, struct.pack("HH", int(x) & 511, int(y) & 511))
+            GD.wait()
     cp = GD.charpal()
     GD.fade(cp, 32, 0)
 

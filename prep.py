@@ -20,7 +20,7 @@ def clamp01(x):
 
 class Sequencer:
     def __init__(self):
-        self.f = open("seq", "w")
+        self.f = open("MAIN.SEQ", "w")
         self.fake = 0
         self.waitpending = 0
 
@@ -72,6 +72,7 @@ from tiling import tiling
 from dna import dna
 from blocks import blocks
 from mario import mario
+from j1 import j1
 
 def do(nm):
     if 1 or nm in ('tiling', ):
@@ -94,6 +95,7 @@ if do('statics'):
     slide(GD, "zardoz")
     slide(GD, "wargames", "layers, sprites, palettes", "32K ROM, 2K RAM", "beam chasing")
     slide(GD, "backto", "Wiring / C++", "big storage", "desktop tools")
+    slide(GD, "plato", "algorithms", "math", "taste")
 
 if do('mario'):
     GD.cold()
@@ -107,16 +109,20 @@ if do('tiling'):
     GD.cold()
     tiling(GD)
 
-if do('dna'):
-    GD.cold()
-    dna(GD)
-
 if do('blocks'):
     GD.cold()
     blocks(GD)
 
+if do('dna'):
+    GD.cold()
+    dna(GD)
+
+if do('j1'):
+    GD.cold()
+    j1(GD)
+
 if do('demos'):
-    for d in ['ball','chessboard','asteroids', 'manicminer']:
+    for d in ['ball', 'chessboard', 'asteroids', 'manicminer']:
         GD.cold()
         playback(GD, open("traces/" + d))
         GD.pause()

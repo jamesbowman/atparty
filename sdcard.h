@@ -309,7 +309,7 @@ public:
         skipsector();
     }
   }
-  void readsector() {
+  int readsector() {
     if (sector == SD.sectors_per_cluster) {
       sector = 0;
       nextcluster();
@@ -323,6 +323,9 @@ public:
 // Serial.println(2 * (micros() - t0), DEC);
     sector++;
     offset += 512;
+  }
+  bool eof(void) {
+    return (offset >= size);
   }
   void readsector(byte *dst) {
     readsector();

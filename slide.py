@@ -8,7 +8,7 @@ import gameduino.prep as gdprep
 import gameduino as gd
 
 fonts = {}
-for i in range(10, 50):
+for i in range(6, 50):
     fonts[i] = ImageFont.truetype("Vera.ttf", i)
 
 def loadspr(ir, im, size, ncolors = 16):

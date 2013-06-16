@@ -41,24 +41,10 @@ static byte controller_sense(uint16_t clock)
 // sdcard_begin: init sdcard
 // readsector: read sector, returns 0 if at EOF
 
-#ifdef EMULATED
-static FILE *ff;
-
-static void sdcard_begin()
-{
-  ff = fopen("seq", "r");
-}
-
-static byte readsector(byte *sec)
-{
-  return fread(sec, 512, 1, ff) != 0;
-}
-#else
+#if !defined(EMULATED)
 
 #define SDCARD_CS 8       // Which pin is sdcard enable connected to?
 #include "sdcard.h"
-
-static Reader rr;
 
 static void sdcard_begin()
 {
@@ -70,17 +56,32 @@ static void sdcard_begin()
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);
   SPSR = (1 << SPI2X);
-  rr.openfile("MAIN.SEQ");
 }
+#else
+static void sdcard_begin() {}
 
-static byte readsector(byte *sec)
-{
-  byte ok = (rr.offset < rr.size);
-  if (ok)
-    rr.readsector(sec);
-  return ok;
-}
-
+class Reader {
+public:
+  FILE *f;
+  void openfile(const char *name) {
+    f = fopen(name, "r");
+    if (!f) {
+      perror(name);
+      exit(1);
+    }
+  }
+  int eof(void) {
+    return feof(f);
+  }
+  int readsector(byte *dst) {
+    fread(dst, 512, 1, f);
+    return !feof(f);
+  }
+  void skipsector() {
+    byte buf[512];
+    fread(buf, 512, 1, f);
+  };
+};
 #endif
 
 int atxy(int x, int y)
@@ -147,16 +148,36 @@ static void banner()
   }
 }
 
+
+
 void setup()
 {
   // Serial.begin(115200);
   GD.begin();
   controller_init();
   banner();
+  sdcard_begin();
+
+#if 0
+  rickroll();
+
+  for (int i = 0; i < 256; i++) {
+    GD.wr16(RAM_PAL + (4 * i + 0) * 2, RGB(0,0,0));
+    GD.wr16(RAM_PAL + (4 * i + 1) * 2, RGB(0x20,0x20,0x20));
+    GD.wr16(RAM_PAL + (4 * i + 2) * 2, RGB(0x40,0x40,0x40));
+    GD.wr16(RAM_PAL + (4 * i + 3) * 2, RGB(0xff,0xff,0xff));
+  }
+  GD.microcode(random_code, sizeof(random_code));
+  for (;;)
+    ;
+#endif
+
   for (;;) {
-    sdcard_begin();
+    Reader seq;
+    seq.openfile("MAIN.SEQ");
     byte sec[512];
-    while (readsector(sec)) {
+    while (!seq.eof()) {
+      seq.readsector(sec);
       uint16_t count = sec[0] + (sec[1] << 8);
       uint16_t addr = sec[2] + (sec[3] << 8);
       if (count & 0x8000) {
@@ -188,9 +209,9 @@ void setup()
         case ',':
           delay(1);
 #ifdef EMULATED
-//         while (controller_sense(0) == CONTROL_RIGHT)
-//           ;
-//         while (controller_sense(0) != CONTROL_RIGHT)
+         while (controller_sense(0) == CONTROL_RIGHT)
+           ;
+         while (controller_sense(0) != CONTROL_RIGHT)
             if (controller_sense(0) == CONTROL_DOWN)
               exit(0);
 #else
