@@ -1,0 +1,62 @@
+#if 0
+#include "videocopy.h"
+#include "random.h"
+
+static void playvideo(Reader &v, Reader &a)
+{
+  byte sectors = 16;
+  byte sec;
+  for (sec = 0; sec < sectors; sec++) {
+    static byte buf[512];
+
+    // if ((sec & 3) == 0) feedaudio(a);
+    v.readsector(buf);
+
+    if (sec == 0) {
+      byte nchr = buf[0];
+      byte w = buf[1];
+      byte h = buf[2];
+      uint16_t payload = 3 + (nchr * 24) + (w * h);
+      sectors = (payload + 511) >> 9;
+
+      // Wait for microprogram to signal "ready" on COMM+15
+      while (GD.rd(COMM+15) == 0)
+        ;
+    }
+    GD.__wstart(0x4000 + (sec << 9));
+    for (int i = 0; i < 512; i++)
+      SPI.transfer(buf[i]);
+    GD.__end();
+  }
+  while (sec++ < 16)
+    v.skipsector();
+
+  GD.wr(COMM+15, 0);
+  GD.wr(J1_RESET, 1);
+  GD.wr(J1_RESET, 0);
+}
+
+static void rickroll()
+{
+    Reader vs;
+    Reader as;
+    openfile(vs, "assets/output.gvf");
+    openfile(as, "assets/output.gaf");
+
+    GD.fill(RAM_PIC, 0xff, 4096);
+    GD.microcode(videocopy_code, sizeof(videocopy_code));
+    GD.wr(COMM+15, 1);
+    long t0 = millis();
+    byte pframes = GD.rd(FRAME);
+    for (int i = 0; i < 50000; i++) {
+      playvideo(vs, as);
+      byte frame = GD.rd(FRAME);
+      Serial.print((byte)(frame - pframes), DEC);
+      Serial.print(' ');
+      pframes = frame;
+      // Serial.println(1000 * as.offset / (millis() - t0), DEC);
+    }
+    Serial.println(millis() - t0, DEC);
+}
+#endif
+
